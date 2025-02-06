@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<head>
+    <meta charset='utf-8'/>
+    <title>IAS-Client</title>
+    <meta name='viewport' content='width=device-width'/>
+    <meta content='yes' name='apple-mobile-web-app-capable'/>
+    <script language='JavaScript' type='text/javascript' src='config.js'></script>
+    <script language='JavaScript' type='text/javascript' src='libs/ua-parser.min.js'></script>
+    <script language='JavaScript' type='text/javascript' src='libs/tool.js'></script>
+    <script language='JavaScript' type='text/javascript' src='ip.js'></script>
+    <script language='JavaScript' type='text/javascript' src='control.js'></script>
+    <script language='JavaScript' type='text/javascript' src='ias_client.js'></script>
+    <script language='JavaScript' type='text/javascript' src='worker.js'></script>
+    <script language='JavaScript' type='text/javascript' src='post.js'></script>
+</head>
+
+<body onload="setButtons()">
+    <div style="width: 100%; overflow: hidden;">
+
+        <div style="width: 350px; float: left;">
+            <h1 style="padding-left:50px;">IAS-Client 2.4</h1>
+            
+            <div style="padding-left:50px;border-spacing:20px;">
+                <br>
+                <button id='stopButton' onclick='reload()' disabled='disabled'>Stop / Reload</button>
+                <br>
+                <br>
+                
+                <button id='startButton' onclick='measurementStart()'>Start</button>
+                <button id='rttButton' onclick='rttStart()'>RTT</button>
+                <button id='downloadButton' onclick='downloadStart()'>Download</button>
+                <button id='uploadButton' onclick='uploadStart()'>Upload</button>
+            </div>
+        </div>
+        
+        <div style="margin-left: 350px;">
+            <br>
+            <table>
+                <tr>
+                    <td><div style="padding-left:40px;border-spacing:20px;">Status: </div></td>
+                    <td><div style="padding-left:20px;border-spacing:20px;" id="status">Measurement Loading</div></td>
+                </tr>
+
+                <tr>
+                    <td><div style="padding-left:40px;border-spacing:20px;">RTT: </div></td>
+                    <td><div style="padding-left:20px;border-spacing:20px;" id="rtt">-</div></td>
+                </tr>
+
+                <tr>
+                    <td><div style="padding-left:40px;border-spacing:20px;">Download: </div></td>
+                    <td><div style="padding-left:20px;border-spacing:20px;" id="download">-</div></td>
+                </tr>
+
+                <tr>
+                    <td><div style="padding-left:40px;border-spacing:20px;">Upload: </div></td>
+                    <td><div style="padding-left:20px;border-spacing:20px;" id="upload">-</div></td>
+                </tr>
+            </table>
+                
+            <div style="padding-left:50px;border-spacing:20px;"><pre id="kpis"></pre></div>
+        </div>
+        
+    </div>
+    
+    <script type="text/javascript">
+        
+        /*
+            Copyright (C) 2016-2025 zafaco GmbH
+
+            This program is free software: you can redistribute it and/or modify
+            it under the terms of the GNU Affero General Public License version 3 
+            as published by the Free Software Foundation.
+
+            This program is distributed in the hope that it will be useful,
+            but WITHOUT ANY WARRANTY; without even the implied warranty of
+            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+            GNU Affero General Public License for more details.
+
+            You should have received a copy of the GNU Affero General Public License
+            along with this program.  If not, see <http://www.gnu.org/licenses/>.
+        */
+
+        var iasMeasurement;
+        var measurementParameters;
+        var jsWebVersion = '2.4';
+        
+        function measurementStart(mode)
+        {
+            outputPrepare();
+
+            measurementParameters = getMeasurementParameters('all', 'web');
+            
+            delete iasMeasurement;
+            iasMeasurement = null;
+            iasMeasurement = new IASMeasurement();
+            iasMeasurement.measurementControl(JSON.stringify(measurementParameters));
+        }
+        
+        function rttStart(mode)
+        {
+            outputPrepare();
+
+            measurementParameters = getMeasurementParameters('rtt', 'web');
+
+            delete iasMeasurement;
+            iasMeasurement = null;
+            iasMeasurement = new IASMeasurement();
+            iasMeasurement.measurementControl(JSON.stringify(measurementParameters));
+        }
+
+        function downloadStart(mode)
+        {
+            outputPrepare();
+
+            measurementParameters = getMeasurementParameters('download', 'web');
+
+            delete iasMeasurement;
+            iasMeasurement = null;
+            iasMeasurement = new IASMeasurement();
+            iasMeasurement.measurementControl(JSON.stringify(measurementParameters));
+        }
+
+        function uploadStart(mode)
+        {
+            outputPrepare();
+
+            measurementParameters = getMeasurementParameters('upload', 'web');
+
+            delete iasMeasurement;
+            iasMeasurement = null;
+            iasMeasurement = new IASMeasurement();
+            iasMeasurement.measurementControl(JSON.stringify(measurementParameters));
+        }
+
+        function getMeasurementParameters(testCase, platform)
+        {
+            var wsConfig            = new WSConfig();
+            measurementParameters   = null;
+            measurementParameters   = wsConfig.getMeasurementParameters(testCase, platform);
+            
+            return measurementParameters;
+        }
+        
+        function setButtons()
+        {
+            toggleButtons(true);
+
+            document.getElementById('status').innerHTML     = 'MeasurementLoad successful';
+        }
+        
+        function toggleButtons(enable)
+        {
+            document.getElementById('startButton').disabled     = !enable; 
+            document.getElementById('rttButton').disabled       = !enable;       
+            document.getElementById('downloadButton').disabled  = !enable;
+            document.getElementById('uploadButton').disabled    = !enable;
+            document.getElementById('stopButton').disabled      = enable;
+        }
+
+        function measurementCallback(data)
+        {
+            outputData(data);
+        }
+        
+        function outputPrepare()
+        {
+            outputClear();
+            toggleButtons(false);
+        }
+
+        function outputClear()
+        {
+            document.getElementById('status').innerHTML = 'MeasurementLoad successful';
+            document.getElementById('rtt').innerHTML = '-';
+            document.getElementById('download').innerHTML = '-';
+            document.getElementById('upload').innerHTML = '-';
+            document.getElementById('kpis').innerHTML = '';
+        }
+
+        function outputData(data)
+        {
+            data = JSON.parse(data);
+            
+
+
+
+
+
+            switch (data.cmd)
+            {
+                case 'info':
+                
+                case 'completed':
+                {
+                    if (data.cmd === 'completed')
+                    {
+                        outputToHtml('Measurement successful', 'status');
+                        outputToHtml(JSON.stringify(orderKeys(data), null, 4), 'kpis');
+
+                        break;
+                    }
+                }
+                
+                case 'finish':
+                {
+                    outputToHtml(data.test_case + ': ' + data.msg, 'status');
+                }
+                
+                case 'report':
+                {
+                    if (data.cmd !== 'info' && data.cmd !== 'error')
+                    {
+                        var output = '';
+                        
+                        if (data.test_case === 'rtt')
+                        {
+                            outputToHtml(data.rtt_avg, 'rtt');
+                        }
+                        if (data.test_case === 'download')
+                        {
+                            outputToHtml(data.download_rate_avg_mbps, 'download');
+                        }
+                        if (data.test_case === 'upload')
+                        {
+                            outputToHtml(data.upload_rate_avg_mbps, 'upload');
+                        }
+                        
+                        outputToHtml(JSON.stringify(orderKeys(data), null, 4), 'kpis');
+                    }
+                    break;
+                }
+                
+                case 'error':
+                {
+                    outputToHtml(data.test_case + ': ' + data.msg, 'status');
+                    outputToHtml(JSON.stringify(orderKeys(data), null, 4), 'kpis');
+                    break;
+                }
+            }
+        }
+
+        function outputToHtml(output, id)
+        {
+            var element = document.getElementById(id);
+
+            if (id === 'rtt')       output = output + ' ms';
+            if (id === 'download')  output = output + ' Mbit/s';
+            if (id === 'upload')    output = output + ' Mbit/s';
+
+            element.innerHTML = output;
+        }
+
+        function reload()
+        {
+            location.reload();
+        }
+        
+        function orderKeys(obj)
+        {
+            var keys = Object.keys(obj).sort(function keyOrder(k1, k2)
+            {
+                if (k1 < k2) return -1;
+                else if (k1 > k2) return +1;
+                else return 0;
+            });
+
+            var i, after = {};
+            for (i = 0; i < keys.length; i++)
+            {
+                after[keys[i]] = obj[keys[i]];
+                delete obj[keys[i]];
+            }
+
+            for (i = 0; i < keys.length; i++)
+            {
+                obj[keys[i]] = after[keys[i]];
+            }
+            
+            return obj;
+        }
+        
+        
+    </script>
+
+</body>
+</html>
