@@ -28,9 +28,9 @@ WSConfig.prototype.getMeasurementParameters = function (testCase, platform)
     measurementParameters.platform = platform;
 
     measurementParameters.wsTargets = [];
-    measurementParameters.wsTargets.push('peer');
+    measurementParameters.wsTargets.push('bbt');
 
-    measurementParameters.wsTLD        = 'bbt.robinferch.me';
+    measurementParameters.wsTLD        = 'robinferch.me';
     measurementParameters.wsTargetPort = '443';
     measurementParameters.wsWss        = 1;
 
