@@ -6,6 +6,8 @@ Internet Access Speed (IAS) JavaScript measurement library. The repository is us
 
 1. Open `src/index.html`
 
+[Link](./src/index.html)
+
 ---------------
 
 # License #
